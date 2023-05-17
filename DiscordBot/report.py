@@ -56,10 +56,15 @@ class Report:
             # Here we've found the message - it's up to you to decide what to do next!
             self.state = State.MESSAGE_IDENTIFIED
             return ["I found this message:", "```" + message.author.name + ": " + message.content + "```", \
-                    "This is all I know how to do right now - it's up to you to build out the rest of my reporting flow!"]
+                    "Why are you reporting this content?", \
+                      "Use the `terrorism` for terrorism " ]
         
         if self.state == State.MESSAGE_IDENTIFIED:
-            return ["<insert rest of reporting flow here>"]
+            self.state = State.AWAITING_MESSAGE
+            return ["What does this post specifically do?", \
+                "Graphic & Violent Content", \
+                   "Promotes/Supports Terrorist Acts", \
+                    "Terrorist Recruitment Content" ]
 
         return []
 
