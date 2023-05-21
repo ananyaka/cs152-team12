@@ -106,7 +106,7 @@ class ModBot(discord.Client):
                 await mod_channel.send(f'The message was: {self.reports[author_id].abuse_message.content}')
                 await mod_channel.send(f'The message was reported for: {self.reports[author_id].abuse_type}')
                 if self.reports[author_id].additional_context_message is not None:
-                    await mod_channel.send(f'There\'s additional context with this report: {self.reports[author_id].additional_context_message}')
+                    await mod_channel.send(f'There\'s additional context with this report: {self.reports[author_id].additional_context_message.content}')
                 await mod_channel.send(f'React 😞 for banning the user, or 😀 for resolving the abuse as false report')
 
             self.reports.pop(author_id)
