@@ -22,12 +22,14 @@ class Report:
         self.client = client
         self.abuse_message = None
         self.abuse_type = None
+        self.additional_context_message = None
+        self.abuse_message_link = None
 
-    def produce_report(self, message = None):
+    def produce_report(self):
         print("\n\n                          REPORTED CONTENT                     \n")
         print("someone reported this message: " + self.abuse_message.content + ". This messege is sent by user: " + self.abuse_message.author.name)
         print("this content is being reported for: " + self.abuse_type)
-        if message is not None: print("the additional reported context is: " + message.content + "\n")
+        if self.additional_context_message is not None: print("the additional reported context is: " + self.additional_context_message.content + "\n")
     
     async def handle_message(self, message):
         '''
@@ -60,6 +62,7 @@ class Report:
             if not channel:
                 return ["It seems this channel was deleted or never existed. Please try again or say `cancel` to cancel."]
             try:
+                message_link = message.content
                 message = await channel.fetch_message(int(m.group(3)))
             except discord.errors.NotFound:
                 return ["It seems this message was deleted or never existed. Please try again or say `cancel` to cancel."]
@@ -67,6 +70,7 @@ class Report:
             # Here we've found the message - it's up to you to decide what to do next!
             self.state = State.MESSAGE_IDENTIFIED1
             self.abuse_message = message
+            self.abuse_message_link = message_link
             return ["I found this message:", "```" + message.author.name + ": " + message.content + "```", \
                     "Why are you reporting this content?", \
                       "Please type in one of the keywords to identify the type of abuse", \
@@ -113,7 +117,8 @@ class Report:
         
         if self.state == State.AWAITING_MESSAGE3:
 
-            self.produce_report(message)
+            self.additional_context_message = message
+            self.produce_report()
             self.state = State.REPORT_COMPLETE
 
             return ["Thank you for reporting. Someone from our team will review this and get back to you shortly"]

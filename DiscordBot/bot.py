@@ -9,6 +9,8 @@ import requests
 from report import Report
 import pdb
 
+from uni2ascii import uni2ascii
+
 # Set up logging to the console
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
@@ -25,6 +27,8 @@ with open(token_path) as f:
     tokens = json.load(f)
     discord_token = tokens['discord']
 
+
+sensitive_keywords = ["terrorism", "isis", "911"]
 
 class ModBot(discord.Client):
     def __init__(self): 
@@ -96,6 +100,15 @@ class ModBot(discord.Client):
 
         # If the report is complete or cancelled, remove it from our map
         if self.reports[author_id].report_complete():
+
+            for guild_id, mod_channel in self.mod_channels.items():
+                await mod_channel.send(f'User reported the folllowing message:\n{self.reports[author_id].abuse_message_link}')
+                await mod_channel.send(f'The message was: {self.reports[author_id].abuse_message.content}')
+                await mod_channel.send(f'The message was reported for: {self.reports[author_id].abuse_type}')
+                if self.reports[author_id].additional_context_message is not None:
+                    await mod_channel.send(f'There\'s additional context with this report: {self.reports[author_id].additional_context_message}')
+                await mod_channel.send(f'React 😞 for banning the user, or 😀 for resolving the abuse as false report')
+
             self.reports.pop(author_id)
 
     async def handle_channel_message(self, message):
@@ -103,11 +116,14 @@ class ModBot(discord.Client):
         if not message.channel.name == f'group-{self.group_num}':
             return
 
-        # Forward the message to the mod channel
-        mod_channel = self.mod_channels[message.guild.id]
-        await mod_channel.send(f'Forwarded message:\n{message.author.name}: "{message.content}"')
-        scores = self.eval_text(message.content)
-        await mod_channel.send(self.code_format(scores))
+        ascii_string = uni2ascii(message.content)
+        if any(word in sensitive_keywords for word in ascii_string.split()):
+
+            # Forward the message to the mod channel
+            mod_channel = self.mod_channels[message.guild.id]
+            await mod_channel.send(f'Detected message potentially related to terrorism:\n{message.author.name}: "{message.content}"')
+            scores = self.eval_text(message.content)
+            await mod_channel.send(self.code_format(scores))
 
     
     def eval_text(self, message):
@@ -115,7 +131,7 @@ class ModBot(discord.Client):
         TODO: Once you know how you want to evaluate messages in your channel, 
         insert your code here! This will primarily be used in Milestone 3. 
         '''
-        return message
+        return uni2ascii(message)
 
     
     def code_format(self, text):
