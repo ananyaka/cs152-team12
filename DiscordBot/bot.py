@@ -31,7 +31,7 @@ with open(token_path) as f:
 sensitive_keywords = ["terrorism", "isis", "911"]
 
 class ModBot(discord.Client):
-    def __init__(self): 
+    def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
         super().__init__(command_prefix='.', intents=intents)
@@ -113,6 +113,7 @@ class ModBot(discord.Client):
 
     async def handle_channel_message(self, message):
         # Only handle messages sent in the "group-#" channel
+
         if not message.channel.name == f'group-{self.group_num}':
             return
 
@@ -125,6 +126,23 @@ class ModBot(discord.Client):
             scores = self.eval_text(message.content)
             await mod_channel.send(self.code_format(scores))
 
+    async def on_raw_message_edit(self, payload):
+        # Only handle messages sent in the "group-#" channel
+        channel = await self.fetch_channel(payload.channel_id)
+        channel_name = channel.name
+        if not channel_name == f'group-{self.group_num}':
+            return
+
+        message = await channel.fetch_message(payload.message_id)
+        ascii_string = uni2ascii(message.content)
+
+        # Perform desired actions
+        if any(word in sensitive_keywords for word in ascii_string.split()):
+            # Forward the message to the mod channel
+            mod_channel = self.mod_channels[payload.guild_id]
+            await mod_channel.send(f'Detected edited message potentially related to terrorism:\n{message.author.name}: "{message.content}"')
+            scores = self.eval_text(message.content)
+            await mod_channel.send(self.code_format(scores))
     
     def eval_text(self, message):
         ''''
@@ -140,7 +158,7 @@ class ModBot(discord.Client):
         evaluated, insert your code here for formatting the string to be 
         shown in the mod channel. 
         '''
-        return "Evaluated: '" + text+ "'"
+        return "Evaluated: '" + text + "'"
 
 
 client = ModBot()
