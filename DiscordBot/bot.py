@@ -1,6 +1,7 @@
 # bot.py
 import discord
 from discord.ext import commands
+from enum import Enum, auto
 import os
 import json
 import logging
@@ -10,6 +11,9 @@ from report import Report
 import pdb
 
 from uni2ascii import uni2ascii
+# setting up reactions
+intents = discord.Intents.default()
+intents.reactions = True
 
 # Set up logging to the console
 logger = logging.getLogger('discord')
@@ -86,6 +90,7 @@ class ModBot(discord.Client):
         responses = []
 
         # Only respond to messages if they're part of a reporting flow
+        print(message.content)
         if author_id not in self.reports and not message.content.startswith(Report.START_KEYWORD):
             return
 
@@ -93,7 +98,7 @@ class ModBot(discord.Client):
         if author_id not in self.reports:
             self.reports[author_id] = Report(self)
 
-        # Let the report class handle this message; forward all the messages it returns to uss
+        # Let the report class handle this message; forward all the messages it returns to us
         responses = await self.reports[author_id].handle_message(message)
         for r in responses:
             await message.channel.send(r)
@@ -107,13 +112,13 @@ class ModBot(discord.Client):
                 await mod_channel.send(f'The message was reported for: {self.reports[author_id].abuse_type}')
                 if self.reports[author_id].additional_context_message is not None:
                     await mod_channel.send(f'There\'s additional context with this report: {self.reports[author_id].additional_context_message.content}')
-                await mod_channel.send(f'React 😞 for banning the user, or 😀 for resolving the abuse as false report')
+                await mod_channel.send(f'React 😞 for banning the user, or 😀 for further review')
+
 
             self.reports.pop(author_id)
 
     async def handle_channel_message(self, message):
         # Only handle messages sent in the "group-#" channel
-
         if not message.channel.name == f'group-{self.group_num}':
             return
 
@@ -126,8 +131,20 @@ class ModBot(discord.Client):
             scores = self.eval_text(message.content)
             await mod_channel.send(self.code_format(scores))
 
+    async def on_raw_reaction_add(self, payload):
+        channel = await self.fetch_channel(payload.channel_id)
+        message = await channel.fetch_message(payload.message_id)
+        if (str(channel) != f'group-{self.group_num}-mod') and (message != 'React 😞 for banning the user, or 😀 for further review'):
+            return
+
+        if (payload.emoji.name == '😞') :
+            await channel.send("this user was banned!")
+        elif (payload.emoji.name == '😀') :
+            await channel.send("this message will be sent for further review!")
+
+
     async def on_raw_message_edit(self, payload):
-        # Only handle messages sent in the "group-#" channel
+        # Only handle messages sent in the "group-#" channel that are edited
         channel = await self.fetch_channel(payload.channel_id)
         channel_name = channel.name
         if not channel_name == f'group-{self.group_num}':
