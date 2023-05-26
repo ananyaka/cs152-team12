@@ -42,7 +42,8 @@ class ModBot(discord.Client):
         self.group_num = None
         self.mod_channels = {} # Map from guild to the mod channel id for that guild
         self.reports = {} # Map from user IDs to the state of their report
-
+        self.currentMessage = None
+        self.currentAbuser = None
     async def on_ready(self):
         print(f'{self.user.name} has connected to Discord! It is these guilds:')
         for guild in self.guilds:
@@ -105,14 +106,16 @@ class ModBot(discord.Client):
 
         # If the report is complete or cancelled, remove it from our map
         if self.reports[author_id].report_complete():
-
             for guild_id, mod_channel in self.mod_channels.items():
-                await mod_channel.send(f'User reported the folllowing message:\n{self.reports[author_id].abuse_message_link}')
+                await mod_channel.send(f'User reported the following message:\n{self.reports[author_id].abuse_message_link}')
                 await mod_channel.send(f'The message was: {self.reports[author_id].abuse_message.content}')
                 await mod_channel.send(f'The message was reported for: {self.reports[author_id].abuse_type}')
                 if self.reports[author_id].additional_context_message is not None:
                     await mod_channel.send(f'There\'s additional context with this report: {self.reports[author_id].additional_context_message.content}')
-                await mod_channel.send(f'React 😞 for banning the user, or 😀 for further review')
+                print(self.reports[author_id].abuse_message)
+                self.currentAbuser = self.reports[author_id].abuse_message.author
+                self.currentMessage = self.reports[author_id].abuse_message
+                await mod_channel.send(f'React 😞 for permanently banning the user, or 😤 for temporarily banning the user for 72 hours, or 😀 to end the review and issue a warning. These reactions will also delete the user\'s message')
 
 
             self.reports.pop(author_id)
@@ -134,14 +137,26 @@ class ModBot(discord.Client):
     async def on_raw_reaction_add(self, payload):
         channel = await self.fetch_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
-        if (str(channel) != f'group-{self.group_num}-mod') and (message != 'React 😞 for banning the user, or 😀 for further review'):
+        if (str(channel) != f'group-{self.group_num}-mod') and (message != 'React 😞 for permanently banning the user, or 😤 for temporarily banning the user for 72 hours, or 😀 to end the review and issue a warning.'):
             return
-
+        
+        # delete the message if we react to the previous message.
+        if (payload.emoji.name == '😞' or payload.emoji.name == '😤' or payload.emoji.name == '😀'):
+            if (self.currentMessage != None):
+                await self.currentMessage.delete()
+        channel_dm = ''
+        abuser_dm = ''
         if (payload.emoji.name == '😞') :
-            await channel.send("this user was banned!")
+            channel_dm += "This user is permanently banned."
+            abuser_dm += 'Your following post violates our content policies:\n' + self.currentMessage.content + '\nYou have been permanently banned because you have violated our content policies three separate times.'
+        elif (payload.emoji.name == '😤') :
+            channel_dm += "This user is temporarily banned. They can return to the app in 72 hours."
+            abuser_dm += 'Your following post violates our content policies:\n' + self.currentMessage.content + "\nYou are now temporarily banned for violating our content policy for the second time. You may log back in after 72 hours. If you violate our policy again, you will be permanently banned."
         elif (payload.emoji.name == '😀') :
-            await channel.send("this message will be sent for further review!")
-
+            channel_dm += "This user will be issued a warning. "
+            abuser_dm += 'Your following post violates our content policies: \n' + self.currentMessage.content + "\nOur team has detected a violation of our content policy in the last message you sent. If you continue to violate our policies, we will issue a temporary ban followed by a permanent ban. "
+        if (channel_dm != ""): await channel.send(channel_dm + "The message they sent has been removed.")
+        if (self.currentAbuser != None) and abuser_dm != "": await self.currentAbuser.send(abuser_dm)
 
     async def on_raw_message_edit(self, payload):
         # Only handle messages sent in the "group-#" channel that are edited
