@@ -86,7 +86,7 @@ class ModBot(discord.Client):
             await self.handle_dm(message)
 
             
-    async def create_userSpecs(self):
+    async def create_userSpecs(self, message):
         user_id = message.author.id
         user_name = message.author.name
         
