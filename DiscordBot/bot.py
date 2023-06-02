@@ -34,7 +34,10 @@ with open(token_path) as f:
 
 #variables
 sensitive_keywords = ["terrorism", "isis", "911"]
-userList = {}
+userList = {} #leave empty
+urgent_rules = ["detonate the bomb","attack tomorrow", "kill everyone", "everyone will die"]
+suspicous_rules = ["isis","terrorism is not bad"]
+mid_rules = ["bomb", "bombs","i love isis", "come join isis", "join isis"]
 
 class ModBot(discord.Client):
     def __init__(self):
@@ -82,6 +85,7 @@ class ModBot(discord.Client):
         # Check if this message was sent in a server ("guild") or if it's a DM
         if message.guild:
             await self.handle_channel_message(message)
+            await self.paltform_rules(message)
         else:
             await self.handle_dm(message)
 
@@ -97,15 +101,96 @@ class ModBot(discord.Client):
         else:
             userList[user_id] = {
             "name": user_name,
-            "suspicious_flags": 0,
-            "urgent_flags": 0
+            "red_flags": 0,
+            "yellow_flags": 0,
+            "green_flags": 0
             }
             
-        #checking all users created 
+        #checking all users created - allow moderator to view users (uncomment)
         mod_channel = self.mod_channels[message.guild.id]
         await mod_channel.send(f'users created:')
+        count = 1
         for key in userList:
-            await mod_channel.send(f'a user:\n{userList[key]}')
+            await mod_channel.send(f'user {count}:\n{userList[key]}')
+            count+=1
+
+
+
+    async def paltform_rules(self, message):
+        text = message.content 
+        text = text.lower()  
+        user_id = message.author.id
+        mod_channel = self.mod_channels[message.guild.id]
+
+        urgent = 0
+        mid = 0
+        sus = 0
+
+        #urgent rules
+        for x in urgent_rules:
+            testRule = re.search(x, text)
+
+            if testRule:
+                urgent += 1
+            else:
+                continue
+
+        #mid rules       
+        for x in mid_rules:
+            testRule = re.search(x, text)
+
+            if testRule:
+                mid +=1
+                
+            else:
+                continue
+
+        #suspicous  rules       
+        for x in suspicous_rules:
+            testRule = re.search(x, text)
+
+            if testRule:
+                sus +=1  
+            else:
+                continue
+        
+        #calculate total score & flag
+        total = (urgent*5) + (mid*3) + (sus*0.5)
+        await mod_channel.send(f'testing rules...')
+        await mod_channel.send(f'comment: {text}')
+        await mod_channel.send(f'total score: {total}')
+
+        if total < 10:
+            if total>=5:
+                userList[user_id]["red_flags"] += 1
+            elif total <5 and total >=3:
+                userList[user_id]["yellow_flags"] += 1
+            elif total < 3:
+                userList[user_id]["green_flags"] += 1
+    
+        elif total >= 10 and total < 20:
+            if total>=15:
+                userList[user_id]["red_flags"] += 1
+            elif total <15 and total >=13:
+                userList[user_id]["yellow_flags"] += 1
+            elif total < 13 and total >= 10:
+                userList[user_id]["green_flags"] += 1
+
+        elif total >= 20:
+            if total>=25:
+                userList[user_id]["red_flags"] += 1
+            elif total <25 and total >=23:
+                userList[user_id]["yellow_flags"] += 1
+            elif total < 23 and total >= 20:
+                userList[user_id]["green_flags"] += 1
+
+
+        #checking all users created - allow moderator to view users and their flags (uncomment)
+        count = 1
+        for key in userList:
+            await mod_channel.send(f'user {count}:\n{userList[key]}')
+            count+=1  
+
         
         
     async def handle_dm(self, message):
