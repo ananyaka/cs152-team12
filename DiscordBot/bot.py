@@ -85,7 +85,7 @@ class ModBot(discord.Client):
         # Check if this message was sent in a server ("guild") or if it's a DM
         if message.guild:
             await self.handle_channel_message(message)
-            await self.paltform_rules(message)
+            await self.platform_rules(message)
         else:
             await self.handle_dm(message)
 
@@ -116,7 +116,7 @@ class ModBot(discord.Client):
 
 
 
-    async def paltform_rules(self, message):
+    async def platform_rules(self, message):
         text = message.content 
         text = text.lower()  
         user_id = message.author.id
