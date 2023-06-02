@@ -27,7 +27,7 @@ class Report:
 
     def produce_report(self):
         print("\n\n                          REPORTED CONTENT                     \n")
-        print("someone reported this message: " + self.abuse_message.content + ". This messege is sent by user: " + self.abuse_message.author.name)
+        print("someone reported this message: " + self.abuse_message.content + ". This message is sent by user: " + self.abuse_message.author.name)
         print("this content is being reported for: " + self.abuse_type)
         if self.additional_context_message is not None: print("the additional reported context is: " + self.additional_context_message.content + "\n")
     
@@ -122,10 +122,6 @@ class Report:
             self.state = State.REPORT_COMPLETE
 
             return ["Thank you for reporting. Someone from our team will review this and get back to you shortly"]
-
-            
-
-
 
 
         return []
