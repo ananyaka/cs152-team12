@@ -32,8 +32,9 @@ with open(token_path) as f:
     tokens = json.load(f)
     discord_token = tokens['discord']
 
-
+#variables
 sensitive_keywords = ["terrorism", "isis", "911"]
+userList = {}
 
 class ModBot(discord.Client):
     def __init__(self):
@@ -75,13 +76,36 @@ class ModBot(discord.Client):
         # Ignore messages from the bot 
         if message.author.id == self.user.id:
             return
-
+        #create user profile if user does not exist
+        await self.create_userSpecs()
+        
         # Check if this message was sent in a server ("guild") or if it's a DM
         if message.guild:
             await self.handle_channel_message(message)
         else:
             await self.handle_dm(message)
 
+            
+    async def create_userSpecs(self):
+        user_id = message.author.id
+        user_name = message.author.name
+        
+        #if user already exists, do nothing
+        if user_id in userList:
+            return
+            #if a new user, create user
+        else:
+            userList[user_id] = {
+            "name": user_name,
+            "suspicious_flags": 0,
+            "urgent_flags": 0
+            }
+        #checking all users created 
+        await mod_channel.send(f'users created:')
+        for key in userList:
+            await mod_channel.send(f'a user:\n{userList[key]}')
+        
+        
     async def handle_dm(self, message):
         # Handle a help message
         if message.content == Report.HELP_KEYWORD:
