@@ -8,6 +8,7 @@ import re
 import requests
 from report import Report
 import pdb
+from chatgpt import Detector 
 
 from uni2ascii import uni2ascii
 
@@ -38,6 +39,7 @@ class ModBot(discord.Client):
         self.group_num = None
         self.mod_channels = {} # Map from guild to the mod channel id for that guild
         self.reports = {} # Map from user IDs to the state of their report
+        self.detector = Detector()
 
     async def on_ready(self):
         print(f'{self.user.name} has connected to Discord! It is these guilds:')
@@ -124,6 +126,7 @@ class ModBot(discord.Client):
             await mod_channel.send(f'Detected message potentially related to terrorism:\n{message.author.name}: "{message.content}"')
             scores = self.eval_text(message.content)
             await mod_channel.send(self.code_format(scores))
+            print(self.detector.classify(scores))
 
     
     def eval_text(self, message):
