@@ -77,7 +77,7 @@ class ModBot(discord.Client):
         if message.author.id == self.user.id:
             return
         #create user profile if user does not exist
-        await self.create_userSpecs()
+        await self.create_userSpecs(message)
         
         # Check if this message was sent in a server ("guild") or if it's a DM
         if message.guild:
