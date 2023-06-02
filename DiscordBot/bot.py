@@ -100,7 +100,9 @@ class ModBot(discord.Client):
             "suspicious_flags": 0,
             "urgent_flags": 0
             }
+            
         #checking all users created 
+        mod_channel = self.mod_channels[message.guild.id]
         await mod_channel.send(f'users created:')
         for key in userList:
             await mod_channel.send(f'a user:\n{userList[key]}')
