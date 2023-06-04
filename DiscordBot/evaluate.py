@@ -90,6 +90,7 @@ def evaluate(terrorism_data, safe_data, percentage_test = 0.001, num_example = 6
             TF += 1
         elif result == "safe":
             FN += 1
+            print(terrorism_tweet)
         else:
             print(result)
 
@@ -100,6 +101,7 @@ def evaluate(terrorism_data, safe_data, percentage_test = 0.001, num_example = 6
                           np.random.choice(safe_train, size=3, replace=False))
         if result == "terrorism":
             FP += 1
+            print(safe_tweet)
         elif result == "safe":
             TN += 1
         else:
