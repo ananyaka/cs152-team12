@@ -343,11 +343,11 @@ class ModBot(discord.Client):
         #capture word lists
         prior_words1 =['love', 'like']
         
-        main_word1 = ['al-qaeda', 'isis', 'islamic state of iraq and syria', 'taliban', 'boko haram', 'hamas', 'hezbollah', 'al-shabaab', 'lashkar-e-taiba', 'farc', 'revolutionary armed forces of colombia', 'basque homeland and liberty']
+        main_word1 = ['al-qaeda', 'isis', 'islamic state of iraq and syria', 'taliban', 'boko', 'hamas', 'hezbollah', 'alshabaab', 'lashkaretaiba', 'farc', 'revolutionary armed forces of colombia', 'basque homeland and liberty']
         
-        main_word2 = ['participate', 'watch']
+        main_word2 = ['boko','participate', 'watch', 'al', 'lashkar']
         
-        post_words2 = ['purpose', 'desire']
+        post_words2 = ['haram', 'shabaab', 'taiba','purpose', 'desire']
         
         #variables
         i = 0
