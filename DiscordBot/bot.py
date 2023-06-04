@@ -131,11 +131,11 @@ class ModBot(discord.Client):
         sentence = sentence.lower()
 
         #capture word lists
-        prior_weapon_words =['bring', 'fetch', 'carry', 'transport','convey','deliver','take','move','get','procure','import','want', 'give', 'send','provide', 'detonate','execute']
+        prior_weapon_words =['bring', 'fetch', 'carry', 'transport','convey','deliver','take','move','get','procure','import','want', 'give', 'send','provide', 'detonate', 'execute']
         
         weapon_words = ['weapons', 'weapon','ieds', 'gun', 'guns', 'vbieds', 'suicide', 'bombers','bomber', 'grenades', 'grenade', 'explosives', 'explosive', 'dead']
         
-        action_danger_words =['kill', 'execute', 'end', 'bury', 'destroy', 'shoot', 'attack', 'explode', 'explosives']
+        action_danger_words =['kill', 'execute', 'end', 'bury', 'destroy', 'shoot', 'attack', 'explode', 'explosives','detonate', 'execute', 'eliminate']
         
         post_action_words = ['everyone', 'him', 'her', 'them', 'all', 'lives', 'life','both', 'today', 'tomorrow', 'next week', 'in a week', 'dead']
         
