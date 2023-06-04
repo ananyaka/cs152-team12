@@ -131,7 +131,7 @@ class ModBot(discord.Client):
         sentence = sentence.lower()
 
         #capture word lists
-        prior_weapon_words =['bring', 'fetch', 'carry', 'transport','convey','deliver','take','move','get','procure','import','want', 'give', 'send','provide', 'detonate']
+        prior_weapon_words =['bring', 'fetch', 'carry', 'transport','convey','deliver','take','move','get','procure','import','want', 'give', 'send','provide', 'detonate','execute']
         
         weapon_words = ['weapons', 'weapon','ieds', 'gun', 'guns', 'vbieds', 'suicide', 'bombers','bomber', 'grenades', 'grenade', 'explosives', 'explosive', 'dead']
         
