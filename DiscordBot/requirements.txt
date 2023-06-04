@@ -1,0 +1,19 @@
+# packages that evaluate.py depend on
+
+# numpy>=1.20.0
+# scipy>=1.7.0
+# matplotlib>=3.7.0
+# scikit-learn>=1.0.2
+# nltk>=3.7
+# pytest>=7.1
+# jupyter>=1.0.0
+# pandas>=1.5
+# torch==1.13.1
+# torchvision==0.14.1
+# transformers==4.26.1
+# datasets==2.10.1
+# spacy==3.5.1
+# #dsp-ml==0.1.4
+# git+https://github.com/stanfordnlp/dsp
+# cohere
+# openai
