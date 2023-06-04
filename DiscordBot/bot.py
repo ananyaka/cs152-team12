@@ -35,9 +35,6 @@ with open(token_path) as f:
 #variables
 sensitive_keywords = ["terrorism", "isis", "911"]
 userList = {} #leave empty
-urgent_rules = ["detonate the bomb","attack tomorrow", "kill everyone", "everyone will die"]
-suspicous_rules = ["isis","terrorism is not bad"]
-mid_rules = ["bomb", "bombs","i love isis", "come join isis", "join isis"]
 
 class ModBot(discord.Client):
     def __init__(self):
@@ -85,7 +82,7 @@ class ModBot(discord.Client):
         # Check if this message was sent in a server ("guild") or if it's a DM
         if message.guild:
             await self.handle_channel_message(message)
-            await self.platform_rules(message)
+            #ADD HERE
         else:
             await self.handle_dm(message)
 
@@ -113,84 +110,322 @@ class ModBot(discord.Client):
         for key in userList:
             await mod_channel.send(f'user {count}:\n{userList[key]}')
             count+=1
-
-
-
-    async def platform_rules(self, message):
-        text = message.content 
-        text = text.lower()  
-        user_id = message.author.id
-        mod_channel = self.mod_channels[message.guild.id]
-
-        urgent = 0
-        mid = 0
-        sus = 0
-
-        #urgent rules
-        for x in urgent_rules:
-            testRule = re.search(x, text)
-
-            if testRule:
-                urgent += 1
-            else:
-                continue
-
-        #mid rules       
-        for x in mid_rules:
-            testRule = re.search(x, text)
-
-            if testRule:
-                mid +=1
-                
-            else:
-                continue
-
-        #suspicous  rules       
-        for x in suspicous_rules:
-            testRule = re.search(x, text)
-
-            if testRule:
-                sus +=1  
-            else:
-                continue
-        
-        #calculate total score & flag
-        total = (urgent*5) + (mid*3) + (sus*0.5)
-        await mod_channel.send(f'testing rules...')
-        await mod_channel.send(f'comment: {text}')
-        await mod_channel.send(f'total score: {total}')
-
-        if total < 10:
-            if total>=5:
-                userList[user_id]["red_flags"] += 1
-            elif total <5 and total >=3:
-                userList[user_id]["yellow_flags"] += 1
-            elif total < 3:
-                userList[user_id]["green_flags"] += 1
     
-        elif total >= 10 and total < 20:
-            if total>=15:
-                userList[user_id]["red_flags"] += 1
-            elif total <15 and total >=13:
-                userList[user_id]["yellow_flags"] += 1
-            elif total < 13 and total >= 10:
-                userList[user_id]["green_flags"] += 1
+    async def immediate_red_flags(self, message):
+        
+        
+        #define mod channel to send messages to
+        mod_channel = self.mod_channels[message.guild.id] 
 
-        elif total >= 20:
-            if total>=25:
-                userList[user_id]["red_flags"] += 1
-            elif total <25 and total >=23:
-                userList[user_id]["yellow_flags"] += 1
-            elif total < 23 and total >= 20:
-                userList[user_id]["green_flags"] += 1
+        #user 
+        user_id = message.author.id
+        
+        #user message
+        sentence = message.content 
+        sentence = sentence.lower()  
+
+        #capture word lists
+        prior_weapon_words =['bring', "fetch",
+        "carry",
+        "transport",
+        "convey",
+        "deliver",
+        "take",
+        "move",
+        "get",
+        "procure",
+        "import"]
+        
+        weapon_words = ['weapons', 'weapon','ieds', 'gun', 'guns', 'vbieds', 'suicide', 'bombers','bomber', 'grenades', 'grenade', 'explosives', 'explosive']
+        
+        action_danger_words =['kill', 'execute', 'end', 'bury', 'destroy', 'shoot', 'attack', 'in a week']
+        
+        post_action_words = ['everyone', 'him', 'her', 'them', 'all', 'lives', 'life','both', 'today', 'tomorrow', 'next week']
+        
+        #variables
+        i = 0
+        flag = 0
+        word_iter_before = [1,2]
+        word_iter_after = [1,2]
+        
+        #remove punctuations from sentence and split the sentence into a list.
+        import string
+        reg_punct = list(string.punctuation)
+        
+        for p in reg_punct:
+            if p in sentence:
+                sentence = sentence.replace(p, '')
+                # print("punctuation!!!")
+                # print(sentence)
+                
+        splitz = sentence.split()
+        
+        #flag based on prior and post words
+        for x in splitz:
+            # print("x: ", x)
+            # print("i: ", i)
+            
+            #if word is a weapon word, then check prior words
+            if x in weapon_words:
+                
+                #check #'th word before keyword
+                for wrb in word_iter_before:
+                    # print("word before: ", wrb)
+                    if i-wrb < 0:
+                        continue
+                        # print("no hit")
+                    else:
+                        if splitz[i-wrb] in prior_weapon_words:
+                            # print("hit")
+                            # print(splitz[i-wrb])
+                            flag+=1
+                        else: 
+                            continue
+                            # print("no hit")
+            
+            #if word is a action word, then check post words
+            if x in action_danger_words:
+                
+                #check #'th word after keyword
+                for wrb in word_iter_after: 
+                    # print("word after: ", wrb)
+                    if i+wrb > len(splitz)-1:
+                        continue
+                        # print("no hit")
+                    else:
+                        if splitz[i+wrb] in post_action_words:
+                            # print("hit")
+                            # print(splitz[i+wrb])
+                            flag+=1
+                        else: 
+                            continue
+                            # print("no hit")
+                        
+            i+=1
+            
+            
+        #if user has been flagged
+        if flag > 0:
+            #increment user's flag count
+            userList[user_id]["red_flags"] += 1
+        else:
+            #if not, check for other flags
+            await self.yellow_flags(message)
+            
+            
+        if flag > 0:    
+            #checking all users created - allow moderator to view users and their flags (uncomment)
+            count = 1
+            for key in userList:
+                await mod_channel.send(f'red flagged...')
+                await mod_channel.send(f'user {count}:\n{userList[key]}')
+                count+=1  
 
 
-        #checking all users created - allow moderator to view users and their flags (uncomment)
-        count = 1
-        for key in userList:
-            await mod_channel.send(f'user {count}:\n{userList[key]}')
-            count+=1  
+    async def yellow_flags(self, message):
+        
+        
+        #define mod channel to send messages to
+        mod_channel = self.mod_channels[message.guild.id] 
 
+        #user 
+        user_id = message.author.id
+        
+        #user message
+        sentence = message.content 
+        sentence = sentence.lower()  
+
+        #capture word lists
+        prior_words1 =['join']
+        
+        main_word1 = ['al-qaeda', 'isis', 'islamic state of iraq and syria', 'taliban', 'boko haram', 'hamas', 'hezbollah', 'al-shabaab', 'lashkar-e-taiba', 'farc', 'revolutionary armed forces of colombia', 'basque homeland and liberty']
+        
+        main_word2 =['participate', 'watch']
+        
+        post_words2 = ['attack']
+        
+        #variables
+        i = 0
+        flag = 0
+        word_iter_before = [1,2]
+        word_iter_after = [1,2]
+        
+        #remove punctuations from sentence and split the sentence into a list.
+        import string
+        reg_punct = list(string.punctuation)
+        
+        for p in reg_punct:
+            if p in sentence:
+                sentence = sentence.replace(p, '')
+                # print("punctuation!!!")
+                # print(sentence)
+                
+        splitz = sentence.split()
+        
+        #flag based on prior and post words
+        for x in splitz:
+            # print("x: ", x)
+            # print("i: ", i)
+            
+            #if word is a weapon word, then check prior words
+            if x in main_word1:
+                
+                #check #'th word before keyword
+                for wrb in word_iter_before:
+                    # print("word before: ", wrb)
+                    if i-wrb < 0:
+                        continue
+                        # print("no hit")
+                    else:
+                        if splitz[i-wrb] in prior_words1:
+                            # print("hit")
+                            # print(splitz[i-wrb])
+                            flag+=1
+                        else: 
+                            continue
+                            # print("no hit")
+            
+            #if word is a action word, then check post words
+            if x in main_word2:
+                
+                #check #'th word after keyword
+                for wrb in word_iter_after: 
+                    # print("word after: ", wrb)
+                    if i+wrb > len(splitz)-1:
+                        continue
+                        # print("no hit")
+                    else:
+                        if splitz[i+wrb] in post_words2:
+                            # print("hit")
+                            # print(splitz[i+wrb])
+                            flag+=1
+                        else: 
+                            continue
+                            # print("no hit")
+                        
+            i+=1
+            
+        #if user has been flagged
+        if flag > 0:
+            #increment user's flag count
+            userList[user_id]["yellow_flags"] += 1
+        else:
+            #if not, check for other flags
+            await self.green_flags(message)
+
+            
+        
+            
+        if flag > 0:    
+            #checking all users created - allow moderator to view users and their flags (uncomment)
+            count = 1
+            for key in userList:
+                await mod_channel.send(f'yellow flagged...')
+                await mod_channel.send(f'user {count}:\n{userList[key]}')
+                count+=1   
+
+
+        
+
+    async def green_flags(self, message):
+        
+        
+        #define mod channel to send messages to
+        mod_channel = self.mod_channels[message.guild.id] 
+
+        #user 
+        user_id = message.author.id
+        
+        #user message
+        sentence = message.content 
+        sentence = sentence.lower()  
+
+        #capture word lists
+        prior_words1 =['love', 'like']
+        
+        main_word1 = ['al-qaeda', 'isis', 'islamic state of iraq and syria', 'taliban', 'boko haram', 'hamas', 'hezbollah', 'al-shabaab', 'lashkar-e-taiba', 'farc', 'revolutionary armed forces of colombia', 'basque homeland and liberty']
+        
+        main_word2 = ['participate', 'watch']
+        
+        post_words2 = ['purpose', 'desire']
+        
+        #variables
+        i = 0
+        flag = 0
+        word_iter_before = [1,2]
+        word_iter_after = [1,2]
+        
+        #remove punctuations from sentence and split the sentence into a list.
+        import string
+        reg_punct = list(string.punctuation)
+        
+        for p in reg_punct:
+            if p in sentence:
+                sentence = sentence.replace(p, '')
+                # print("punctuation!!!")
+                # print(sentence)
+                
+        splitz = sentence.split()
+        
+        #flag based on prior and post words
+        for x in splitz:
+            # print("x: ", x)
+            # print("i: ", i)
+            
+            #if word is a weapon word, then check prior words
+            if x in main_word1:
+                
+                #check #'th word before keyword
+                for wrb in word_iter_before:
+                    # print("word before: ", wrb)
+                    if i-wrb < 0:
+                        continue
+                        # print("no hit")
+                    else:
+                        if splitz[i-wrb] in prior_words1:
+                            # print("hit")
+                            # print(splitz[i-wrb])
+                            flag+=1
+                        else: 
+                            continue
+                            # print("no hit")
+            
+            #if word is a action word, then check post words
+            if x in main_word2:
+                
+                #check #'th word after keyword
+                for wrb in word_iter_after: 
+                    # print("word after: ", wrb)
+                    if i+wrb > len(splitz)-1:
+                        continue
+                        # print("no hit")
+                    else:
+                        if splitz[i+wrb] in post_words2:
+                            # print("hit")
+                            # print(splitz[i+wrb])
+                            flag+=1
+                        else: 
+                            continue
+                            # print("no hit")
+                        
+            i+=1
+            
+            
+        #if user has been flagged
+        if flag > 0:
+            #increment user's flag count
+            userList[user_id]["green_flags"] += 1
+            
+            
+        if flag > 0:    
+            #checking all users created - allow moderator to view users and their flags (uncomment)
+            count = 1
+            for key in userList:
+                await mod_channel.send(f'green flagged...')
+                await mod_channel.send(f'user {count}:\n{userList[key]}')
+                count+=1  
+                
+                
         
         
     async def handle_dm(self, message):
