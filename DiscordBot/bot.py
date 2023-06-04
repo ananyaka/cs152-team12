@@ -105,10 +105,12 @@ class ModBot(discord.Client):
             
         #checking all users created - allow moderator to view users (uncomment)
         mod_channel = self.mod_channels[message.guild.id]
+        await mod_channel.send(f'__________________________________')
         await mod_channel.send(f'users created:')
         count = 1
         for key in userList:
             await mod_channel.send(f'user {count}:\n{userList[key]}')
+            await mod_channel.send(f'__________')
             count+=1
     
     async def immediate_red_flags(self, message):
@@ -121,23 +123,24 @@ class ModBot(discord.Client):
         user_id = message.author.id
         
         #user message
+        orig_sentence = message.content 
         sentence = message.content 
         sentence = sentence.lower()  
 
         #capture word lists
-        prior_weapon_words =['bring', 'fetch', 'carry', 'transport','convey','deliver','take','move','get','procure','import','want']
+        prior_weapon_words =['bring', 'fetch', 'carry', 'transport','convey','deliver','take','move','get','procure','import','want', 'give', 'send','provide', 'detonate']
         
         weapon_words = ['weapons', 'weapon','ieds', 'gun', 'guns', 'vbieds', 'suicide', 'bombers','bomber', 'grenades', 'grenade', 'explosives', 'explosive', 'dead']
         
-        action_danger_words =['kill', 'execute', 'end', 'bury', 'destroy', 'shoot', 'attack']
+        action_danger_words =['kill', 'execute', 'end', 'bury', 'destroy', 'shoot', 'attack', 'explode', 'explosives']
         
         post_action_words = ['everyone', 'him', 'her', 'them', 'all', 'lives', 'life','both', 'today', 'tomorrow', 'next week', 'in a week', 'dead']
         
         #variables
         i = 0
         flag = 0
-        word_iter_before = [1,2]
-        word_iter_after = [1,2]
+        word_iter_before = [1,2,3]
+        word_iter_after = [1,2,3]
         
         #remove punctuations from sentence and split the sentence into a list.
         import string
@@ -208,6 +211,8 @@ class ModBot(discord.Client):
             #checking all users created - allow moderator to view users and their flags (uncomment)
             count = 1
             for key in userList:
+                await mod_channel.send(f'__________________________________')
+                await mod_channel.send(f'sentence: {orig_sentence}')
                 await mod_channel.send(f'red flagged...')
                 await mod_channel.send(f'user {count}:\n{userList[key]}')
                 count+=1  
@@ -223,6 +228,7 @@ class ModBot(discord.Client):
         user_id = message.author.id
         
         #user message
+        orig_sentence = message.content 
         sentence = message.content 
         sentence = sentence.lower()  
 
@@ -311,6 +317,7 @@ class ModBot(discord.Client):
             #checking all users created - allow moderator to view users and their flags (uncomment)
             count = 1
             for key in userList:
+                await mod_channel.send(f'__________________________________')
                 await mod_channel.send(f'yellow flagged...')
                 await mod_channel.send(f'user {count}:\n{userList[key]}')
                 count+=1   
@@ -328,6 +335,7 @@ class ModBot(discord.Client):
         user_id = message.author.id
         
         #user message
+        orig_sentence = message.content 
         sentence = message.content 
         sentence = sentence.lower()  
 
@@ -412,6 +420,7 @@ class ModBot(discord.Client):
             #checking all users created - allow moderator to view users and their flags (uncomment)
             count = 1
             for key in userList:
+                await mod_channel.send(f'__________________________________')
                 await mod_channel.send(f'green flagged...')
                 await mod_channel.send(f'user {count}:\n{userList[key]}')
                 count+=1  
