@@ -10,7 +10,8 @@ import requests
 from report import Report
 import pdb
 from chatgpt import Detector 
-
+from googletrans import Translator, constants
+from pprint import pprint
 from uni2ascii import uni2ascii
 # setting up reactions
 intents = discord.Intents.default()
@@ -122,10 +123,12 @@ class ModBot(discord.Client):
         #user 
         user_id = message.author.id
         
-        #user message
-        orig_sentence = message.content 
-        sentence = message.content 
-        sentence = sentence.lower()  
+        #user message - translated to English
+        translator = Translator()
+        translation = translator.translate(message.content)
+        orig_sentence = translation.text
+        sentence = orig_sentence
+        sentence = sentence.lower()
 
         #capture word lists
         prior_weapon_words =['bring', 'fetch', 'carry', 'transport','convey','deliver','take','move','get','procure','import','want', 'give', 'send','provide', 'detonate']
@@ -227,10 +230,12 @@ class ModBot(discord.Client):
         #user 
         user_id = message.author.id
         
-        #user message
-        orig_sentence = message.content 
-        sentence = message.content 
-        sentence = sentence.lower()  
+        #user message - translated to English
+        translator = Translator()
+        translation = translator.translate(message.content)
+        orig_sentence = translation.text
+        sentence = orig_sentence
+        sentence = sentence.lower() 
 
         #capture word lists
         prior_words1 =['join']
@@ -334,10 +339,12 @@ class ModBot(discord.Client):
         #user 
         user_id = message.author.id
         
-        #user message
-        orig_sentence = message.content 
-        sentence = message.content 
-        sentence = sentence.lower()  
+        #user message - translated to English
+        translator = Translator()
+        translation = translator.translate(message.content)
+        orig_sentence = translation.text
+        sentence = orig_sentence
+        sentence = sentence.lower() 
 
         #capture word lists
         prior_words1 =['love', 'like']
