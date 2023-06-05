@@ -20,7 +20,7 @@ with open("tweets_terrorism_cleaned.csv") as csvfile:
             continue
 
 # print(len(terrorism_data), terrorism_data[0])
-terrorism_data = np.random.choice(terrorism_data, size=10000, replace=False)
+terrorism_data = np.random.choice(terrorism_data, size=8000, replace=False)
 
 safe_data = []
 with open("tweets_safe_cleaned.csv") as csvfile:
@@ -33,7 +33,7 @@ with open("tweets_safe_cleaned.csv") as csvfile:
             continue
 
 # print(len(safe_data), safe_data[0])
-safe_data = np.random.choice(safe_data, size=100000, replace=False)
+safe_data = np.random.choice(safe_data, size=8000, replace=False)
 
 
 # There should be a file called 'tokens.json' inside the same folder as this file
@@ -80,34 +80,53 @@ def evaluate(terrorism_data, safe_data, percentage_test = 0.001, num_example = 6
     safe_train, safe_test = safe_data[safe_cutoff:], safe_data[:safe_cutoff]
 
 
-    TF, FP, FN, TN = 0, 0, 0, 0
+    TP, FP, FN, TN = 0, 0, 0, 0
+    TP_tweet, FP_tweet, FN_tweet, TN_tweet = [], [], [], []
     print("evaluating terrorism")
     for terrorism_tweet in terrorism_test:
         result = classify(terrorism_tweet,
                           np.random.choice(terrorism_train, size=3, replace=False),
                           np.random.choice(safe_train, size=3, replace=False))
         if result == "terrorism":
-            TF += 1
+            TP += 1
+            TP_tweet.append([terrorism_tweet])
         elif result == "safe":
             FN += 1
+            FN_tweet.append([terrorism_tweet])
             print(terrorism_tweet)
         else:
             print(result)
 
     print("evaluating safe tweets")
+    print(len(safe_test))
     for safe_tweet in safe_test:
+        print(safe_tweet)
         result = classify(safe_tweet,
                           np.random.choice(terrorism_train, size=3, replace=False),
                           np.random.choice(safe_train, size=3, replace=False))
         if result == "terrorism":
             FP += 1
+            FP_tweet.append([safe_tweet])
             print(safe_tweet)
         elif result == "safe":
             TN += 1
+            TN_tweet.append([safe_tweet])
         else:
             print(result)
 
+    print(TP, FP, FN, TN)
 
-    print(TF, FP, FN, TN)
+    filename = "tweets_classified.csv"
 
-evaluate(terrorism_data, safe_data, percentage_test=0.0001)
+    with open(filename, 'w') as csvfile: 
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerows(TP_tweet)
+        csvwriter.writerows([[f'TP: {TP}']])
+        csvwriter.writerows(FN_tweet)
+        csvwriter.writerows([[f'FN: {FN}']])
+        csvwriter.writerows(FP_tweet)
+        csvwriter.writerows([[f'FP: {FP}']])
+        csvwriter.writerows(TN_tweet)
+        csvwriter.writerows([[f'TN: {TN}']])
+
+evaluate(terrorism_data, safe_data, percentage_test=0.01)
