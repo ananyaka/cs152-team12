@@ -481,15 +481,21 @@ class ModBot(discord.Client):
         if not message.channel.name == f'group-{self.group_num}':
             return
 
+        scores = self.eval_text(message.content)
+
         ascii_string = uni2ascii(message.content)
         if any(word in sensitive_keywords for word in ascii_string.split()):
 
             # Forward the message to the mod channel
             mod_channel = self.mod_channels[message.guild.id]
             await mod_channel.send(f'Detected message potentially related to terrorism:\n{message.author.name}: "{message.content}"')
-            scores = self.eval_text(message.content)
             await mod_channel.send(self.code_format(scores))
-            print(self.detector.classify(scores))
+        
+        if self.detector.classify(scores) == "terrorism":
+            # Forward the message to the mod channel
+            mod_channel = self.mod_channels[message.guild.id]
+            await mod_channel.send(f'Detected message potentially related to terrorism:\n{message.author.name}: "{message.content}"')
+            await mod_channel.send(self.code_format(scores))
 
     async def on_raw_reaction_add(self, payload):
         channel = await self.fetch_channel(payload.channel_id)

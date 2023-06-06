@@ -25,9 +25,7 @@ class Detector():
 
     def classify(self, message):
 
-        response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
+        chatgpt_messages = [
         {"role": "system", "content": "You are a content moderation system. Classify each input as either terrorism or safe."},
         {"role": "user", "content": "AQAP: 'RESPONSE TO SHEIKH BAGHDADIS STATEMENT 'ALTHOUGH THE DISBELIEVERS DISLIKE IT.'"},
         {"role": "assistant", "content": "terrorism"},
@@ -43,7 +41,17 @@ class Detector():
         {"role": "assistant", "content": "safe"},
         {"role": "user", "content": message}
         ]
+
+        response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=chatgpt_messages
         )
 
+        print("SENDING TO OPENAI...")
+        print(chatgpt_messages)
+
+
         output = response['choices'][0]['message']['content']
+        print("RECEIVED FROM OPENAI...")
+        print(output)
         return output
