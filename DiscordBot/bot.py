@@ -36,6 +36,10 @@ with open(token_path) as f:
 #variables
 sensitive_keywords = ["terrorism", "isis", "911"]
 userList = {} #leave empty
+channelSpecs = {
+    "rate": "none",
+    "flagged_ind": 0,
+    }
 
 class ModBot(discord.Client):
     def __init__(self):
@@ -82,6 +86,8 @@ class ModBot(discord.Client):
         
         # Check if this message was sent in a server ("guild") or if it's a DM
         if message.guild:
+            await self.immediate_red_flags(message)
+            await self.channel_Activities(message)
             await self.handle_channel_message(message)
             #ADD HERE
         else:
@@ -114,6 +120,38 @@ class ModBot(discord.Client):
             await mod_channel.send(f'__________')
             count+=1
     
+    async def channel_Activities(self, message):
+
+
+        # print("red flags runs")
+        #define mod channel to send messages to
+        mod_channel = self.mod_channels[message.guild.id] 
+
+        #incremement the number of flagged individuals in channel
+
+        for user in userList:
+    
+             if userList[user]['red_flags'] > 0 or userList[user]['yellow_flags'] > 0  or userList[user]['green_flags'] > 0 :
+                print("flagged")
+                channelSpecs['flagged_ind'] += 1
+
+
+
+        #rate channel terrorism activities based on number of flagged individuals
+        if channelSpecs['flagged_ind'] >= 1 and channelSpecs['flagged_ind'] < 10 :
+            channelSpecs['rate'] = "low"
+        if channelSpecs['flagged_ind'] >= 10 and channelSpecs['flagged_ind'] < 25 :
+            channelSpecs['rate'] = "mid"
+        if channelSpecs['flagged_ind'] >= 30 :
+            channelSpecs['rate'] = "high"
+
+        final = channelSpecs['rate'] 
+        await mod_channel.send(f'=====================================')
+        await mod_channel.send(f'channel terrorism activities: {final}')
+        await mod_channel.send(f'=====================================')
+        
+
+        
     async def immediate_red_flags(self, message):
         
         
